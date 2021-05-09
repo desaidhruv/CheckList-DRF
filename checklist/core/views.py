@@ -1,16 +1,18 @@
 from django.shortcuts import render
 from django.http import Http404
 
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import CheckList, CheckListItem
-from .serializers import CheckListSerializer, CheckListItemSerializer
-from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 
+from .models import CheckList, CheckListItem
+
+from .serializers import CheckListSerializer, CheckListItemSerializer
 
 class CheckListsAPIView(APIView):
     serializer_class = CheckListSerializer
-
+    permission_classes = [IsAuthenticated]
     def get(self, request, format=None):
         data = CheckList.objects.all()
 
