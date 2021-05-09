@@ -3,7 +3,7 @@ from django.http import Http404
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import CheckList
+from .models import CheckList, CheckListItem
 from .serializers import CheckListSerializer, CheckListItemSerializer
 from rest_framework import status
 
@@ -55,4 +55,44 @@ class CheckListAPIView(APIView):
     def delete(self, request, pk, format=None):
         checklist = self.get_object(pk)
         checklist.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class CheckListItemCreateAPIView(APIView):
+    serializer_class = CheckListItemSerializer
+    def post(self, request, format=None):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            serialized_data = serializer.data
+            return Response(serialized_data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+
+class CheckListItemAPIView(APIView):
+    serializer_class = CheckListItemSerializer
+    def get_object(self, pk):
+        try:
+            return CheckListItem.objects.get(pk=pk)
+        except CheckListItem.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        checklist_item = self.get_object(pk)
+        serializer = self.serializer_class(checklist_item)
+        serialized_data = serializer.data
+        return Response(serialized_data, status=status.HTTP_200_OK)
+
+    def put(self, request, pk, format=None):
+        checklist_item = self.get_object(pk)
+        serializer = self.serializer_class(checklist_item, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            serialized_data = serializer.data
+            return Response(serialized_data, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk, format=None):
+        checklist_item = self.get_object(pk)
+        checklist_item.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
